@@ -19,7 +19,7 @@ namespace IndexBuilder
             ItemsJsonCachePath = itemsJsonCachePath;
         }
 
-        public async Task FetchAll()
+        public async Task FetchAll(string lang)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace IndexBuilder
 
                     if (idsToRead.Count > 190)
                     {
-                        bool succeeded = await ProcessIds(client, idsToRead);
+                        bool succeeded = await ProcessIds(client, lang, idsToRead);
                         if (succeeded)
                         {
                             Console.WriteLine($"Succeeded writing {idsToRead.Count} objects");
@@ -68,7 +68,7 @@ namespace IndexBuilder
                     }
                 }
 
-                if (idsToRead.Count > 0 && await ProcessIds(client, idsToRead))
+                if (idsToRead.Count > 0 && await ProcessIds(client, lang, idsToRead))
                 {
                     Console.WriteLine($"Succeeded writing {idsToRead.Count} objects");
                     Console.WriteLine($"Cache size: {AllItemsJson.Count}");
@@ -87,7 +87,6 @@ namespace IndexBuilder
         class CondensedItem
         {
             public string Name { get; set; }
-            public string Description { get; set; }
             public string IconUrl { get; set; }
             public Rarity Rarity { get; set; }
         }
@@ -130,7 +129,6 @@ namespace IndexBuilder
                 var rawItem = JsonSerializer.Deserialize<ItemJson>(kv.Value);
                 var condensedItem = new CondensedItem();
                 condensedItem.Name = rawItem.name;
-                condensedItem.Description = rawItem.description;
                 condensedItem.IconUrl = rawItem.icon;
                 condensedItem.Rarity = RarityStringToRarity(rawItem.rarity);
                 condensedJson.Add(kv.Key, condensedItem);
@@ -142,9 +140,9 @@ namespace IndexBuilder
             Console.WriteLine($"Wrote {condensedJson.Count} items to {condensedJsonPath}");
         }
 
-        private async Task<bool> ProcessIds(HttpClient client, List<int> ids)
+        private async Task<bool> ProcessIds(HttpClient client, string lang, List<int> ids)
         {
-            string url = "https://api.guildwars2.com/v2/items?ids=" + string.Join(',', ids);
+            string url = $"https://api.guildwars2.com/v2/items?lang={lang}&ids=" + string.Join(',', ids);
 
             int maxRetry = 2;
             do

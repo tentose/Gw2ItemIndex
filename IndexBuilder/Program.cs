@@ -319,9 +319,23 @@ namespace IndexBuilder
 
             //mc.CollectKeywords().Wait();
 
-            FetchApiData fetch = new FetchApiData(allItemsPath);
-            fetch.FetchAll().Wait();
-            fetch.Condense(condensedItemsPath).Wait();
+            string[] languages = new string[]
+            {
+                "en", 
+                "es",
+                "de",
+                "fr",
+                "zh",
+            };
+
+            foreach (var lang in languages)
+            {
+                var langAllItemsPath = allItemsPath.Replace(".json", $"-{lang}.json");
+                var langCondensedItemsPath = condensedItemsPath.Replace(".json", $"-{lang}.json");
+                FetchApiData fetch = new FetchApiData(langAllItemsPath);
+                fetch.FetchAll(lang).Wait();
+                fetch.Condense(langCondensedItemsPath).Wait();
+            }
 
             Console.ReadLine();
         }
