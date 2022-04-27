@@ -8,6 +8,26 @@ using System.Threading.Tasks;
 
 namespace IndexBuilder
 {
+    public class CondensedItem
+    {
+        public string Name { get; set; }
+        public string IconUrl { get; set; }
+        public Rarity Rarity { get; set; }
+    }
+
+    public enum Rarity
+    {
+        Unknown = 0,
+        Junk = 1,
+        Basic,
+        Fine,
+        Masterwork,
+        Rare,
+        Exotic,
+        Ascended,
+        Legendary,
+    };
+
     internal class FetchApiData
     {
         const int RetryDelay = 61 * 1000;
@@ -83,26 +103,6 @@ namespace IndexBuilder
                 File.WriteAllText(ItemsJsonCachePath, json);
             }
         }
-
-        class CondensedItem
-        {
-            public string Name { get; set; }
-            public string IconUrl { get; set; }
-            public Rarity Rarity { get; set; }
-        }
-
-        enum Rarity
-        {
-            Unknown = 0,
-            Junk = 1,
-            Basic,
-            Fine,
-            Masterwork,
-            Rare,
-            Exotic,
-            Ascended,
-            Legendary,
-        };
 
         private Rarity RarityStringToRarity(string s)
         {

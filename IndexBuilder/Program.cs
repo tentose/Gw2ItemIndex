@@ -111,20 +111,6 @@ namespace IndexBuilder
 
     public class MainClass
     {
-        const string allItemsPath = @".\all_itemsjson.json";
-        const string condensedItemsPath = @".\all_items.json";
-
-        public async Task ReadItBack()
-        {
-            var AllItemsJson = JsonSerializer.Deserialize<Dictionary<int, string>>(System.IO.File.ReadAllText(allItemsPath));
-
-            string objJson = AllItemsJson[431];
-
-            var obj = JsonSerializer.Deserialize<ItemJson>(objJson);
-
-            Console.WriteLine(obj.name);
-        }
-
         public void AddStringToKeywords(string str, HashSet<string> keywords)
         {
             var words = str.Split(' ');
@@ -134,27 +120,18 @@ namespace IndexBuilder
             }
         }
 
-        public async Task CollectKeywords()
+        public async Task CollectKeywords(string allItemsPath, string condensedItemsPath)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            var AllItemsJson = JsonSerializer.Deserialize<Dictionary<int, string>>(System.IO.File.ReadAllText(allItemsPath));
+            var AllItemsJson = JsonSerializer.Deserialize<Dictionary<int, CondensedItem>>(System.IO.File.ReadAllText(condensedItemsPath));
             Console.WriteLine($"Deserialize: {stopwatch.ElapsedMilliseconds}");
             stopwatch = Stopwatch.StartNew();
 
-            var ItemToKeywords = new Dictionary<int, string[]>();
-
             var trie = new UkkonenTrie<int>(3);
-
             foreach (var kv in AllItemsJson)
             {
-                HashSet<string> keywords = new HashSet<string>();
-                var item = JsonSerializer.Deserialize<ItemJson>(kv.Value);
-
-                if (item != null)
-                {
-                    trie.Add(item.name.ToLowerInvariant(), kv.Key);
-                }
+                trie.Add(kv.Value.Name.ToLowerInvariant(), kv.Key);
             }
             Console.WriteLine($"Trie build: {stopwatch.ElapsedMilliseconds}");
             stopwatch = Stopwatch.StartNew();
@@ -167,9 +144,15 @@ namespace IndexBuilder
             Console.WriteLine("try:");
             while ((s = Console.ReadLine()) != "Q")
             {
+                // UkkonenTrie
                 stopwatch = Stopwatch.StartNew();
                 var results = trie.Retrieve(s);
-                Console.WriteLine($"Found all matching items: {stopwatch.ElapsedMilliseconds}");
+                Console.WriteLine($"UkkonenTrie found all matching items: {stopwatch.ElapsedMilliseconds}");
+
+                // Brute force
+                stopwatch = Stopwatch.StartNew();
+                var results2 = AllItemsJson.Where(item => item.Value.Name.ToLowerInvariant().Contains(s)).Select(item => item.Key).ToList();
+                Console.WriteLine($"Brute force found all matching items: {stopwatch.ElapsedMilliseconds}");
 
                 List<InventoryItem> playerMatchingItems = new List<InventoryItem>();
                 foreach (var id in results)
@@ -187,11 +170,10 @@ namespace IndexBuilder
 
                 foreach (var item in playerMatchingItems)
                 {
-                    string itemJson;
-                    if (AllItemsJson.TryGetValue(item.Id, out itemJson))
+                    CondensedItem staticItem;
+                    if (AllItemsJson.TryGetValue(item.Id, out staticItem))
                     {
-                        var jsonItem = JsonSerializer.Deserialize<ItemJson>(itemJson);
-                        Console.WriteLine($"{item.Source} {item.LocationHint}: {jsonItem.name} x {item.Count}");
+                        Console.WriteLine($"{item.Source} {item.LocationHint}: {staticItem.Name} x {item.Count}");
                     }
                     else
                     {
@@ -313,11 +295,23 @@ namespace IndexBuilder
             return allPlayerItems;
         }
 
+        public static void BuildIndex(string lang, string allItemsPath, string condensedItemsPath)
+        {
+            FetchApiData fetch = new FetchApiData(allItemsPath);
+            fetch.FetchAll(lang).Wait();
+            fetch.Condense(condensedItemsPath).Wait();
+        }
+
+        public static void TestIndex(string allItemsPath, string condensedItemsPath)
+        {
+            MainClass mc = new MainClass();
+            mc.CollectKeywords(allItemsPath, condensedItemsPath).Wait();
+        }
+
         public static void Main()
         {
-            //MainClass mc = new MainClass();
-
-            //mc.CollectKeywords().Wait();
+            const string allItemsPath = @"all_itemsjson.json";
+            const string condensedItemsPath = @"all_items.json";
 
             string[] languages = new string[]
             {
@@ -330,11 +324,13 @@ namespace IndexBuilder
 
             foreach (var lang in languages)
             {
-                var langAllItemsPath = allItemsPath.Replace(".json", $"-{lang}.json");
-                var langCondensedItemsPath = condensedItemsPath.Replace(".json", $"-{lang}.json");
-                FetchApiData fetch = new FetchApiData(langAllItemsPath);
-                fetch.FetchAll(lang).Wait();
-                fetch.Condense(langCondensedItemsPath).Wait();
+                var langPath = $".\\{lang}\\";
+                Directory.CreateDirectory(langPath);
+                var langAllItemsPath = langPath + allItemsPath;
+                var langCondensedItemsPath = langPath + condensedItemsPath;
+
+                //BuildIndex(lang, langAllItemsPath, langCondensedItemsPath);
+                TestIndex(langAllItemsPath, langCondensedItemsPath);
             }
 
             Console.ReadLine();
