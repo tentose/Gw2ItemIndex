@@ -126,4 +126,107 @@ namespace IndexBuilder
         public int[] stat_choices { get; set; }
 
     }
+
+    public enum ArmorType
+    {
+        Unknown,
+        Boots,
+        Coat,
+        Gloves,
+        Helm,
+        HelmAquatic,
+        Leggings,
+        Shoulders,
+    }
+
+    public enum ConsumableType
+    {
+        Unknown,
+        AppearanceChange,
+        Booze,
+        ContractNpc,
+        Currency,
+        Food,
+        Generic,
+        Halloween,
+        Immediate,
+        MountRandomUnlock,
+        RandomUnlock,
+        Transmutation,
+        Unlock,
+        UpgradeRemoval,
+        Utility,
+        TeleportToFriend,
+    }
+
+    public enum ContainerType
+    {
+        Unknown,
+        Default,
+        GiftBox,
+        Immediate,
+        OpenUI,
+    }
+
+    public enum GatheringType
+    {
+        Unknown,
+        Foraging,
+        Logging,
+        Mining,
+    }
+
+    public enum GizmoType
+    {
+        Unknown,
+        Default,
+        ContainerKey,
+        RentableContractNpc,
+        UnlimitedConsumable,
+    }
+
+    public enum TrinketType
+    {
+        Unknown,
+        Accessory,
+        Amulet,
+        Ring,
+    }
+
+    public enum UpgradeType
+    {
+        Unknown,
+        Default,
+        Gem,
+        Rune,
+        Sigil,
+    }
+
+    public enum WeaponType
+    {
+        Unknown,
+        Axe,
+        Dagger,
+        Mace,
+        Pistol,
+        Scepter,
+        Sword,
+        Focus,
+        Shield,
+        Torch,
+        Warhorn,
+        Greatsword,
+        Hammer,
+        LongBow,
+        Rifle,
+        ShortBow,
+        Staff,
+        Harpoon,
+        Speargun,
+        Trident,
+        LargeBundle,
+        SmallBundle,
+        Toy,
+        ToyTwoHanded,
+    }
 }

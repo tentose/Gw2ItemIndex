@@ -18,21 +18,7 @@ namespace IndexBuilder
 
         // Optional Fields
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public ArmorType ArmorType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public ConsumableType ConsumableType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public ContainerType ContainerType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public GatheringType GatheringType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public GizmoType GizmoType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public TrinketType TrinketType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public UpgradeType UpgradeType { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public WeaponType WeaponType { get; set; }
+        public ItemSubType SubType { get; set; }
     }
 
     public enum Rarity
@@ -69,92 +55,76 @@ namespace IndexBuilder
         Weapon,
         JadeBotCore,
         JadeBotChip,
-        Fishing,
     }
 
-    public enum ArmorType
+    public enum ItemSubType
     {
-        Unknown,
-        Boots,
-        Coat,
-        Gloves,
-        Helm,
-        HelmAquatic,
-        Leggings,
-        Shoulders,
-    }
 
-    public enum ConsumableType
-    {
-        Unknown,
-        AppearanceChange,
-        Booze,
-        ContractNpc,
-        Currency,
-        Food,
-        Generic,
-        Halloween,
-        Immediate,
-        MountRandomUnlock,
-        RandomUnlock,
-        Transmutation,
-        Unlock,
-        UpgradeRemoval,
-        Utility,
-        TeleportToFriend,
-    }
-
-    public enum ContainerType
-    {
-        Unknown,
-        Default,
-        GiftBox,
-        Immediate,
-        OpenUI,
-    }
-
-    public enum GatheringType
-    {
-        Unknown,
-        Foraging,
-        Logging,
-        Mining,
-    }
-
-    public enum GizmoType
-    {
-        Unknown,
-        Default,
-        ContainerKey,
-        RentableContractNpc,
-        UnlimitedConsumable,
-    }
-
-    public enum TrinketType
-    {
-        Unknown,
-        Accessory,
-        Amulet,
-        Ring,
-    }
-
-    public enum UpgradeType
-    {
-        Unknown,
-        Default,
-        Gem,
-        Rune,
-        Sigil,
-    }
-
-    public enum WeaponType
-    {
-        Unknown,
-        Axe, Dagger, Mace, Pistol, Scepter, Sword,
-        Focus, Shield, Torch, Warhorn,
-        Greatsword, Hammer, LongBow, Rifle, ShortBow, Staff,
-        Harpoon, Speargun, Trident,
-        LargeBundle, SmallBundle, Toy, ToyTwoHanded
+        Unknown = 0,
+        Armor_Boots = 100,
+        Armor_Coat,
+        Armor_Gloves,
+        Armor_Helm,
+        Armor_HelmAquatic,
+        Armor_Leggings,
+        Armor_Shoulders,
+        Consumable_AppearanceChange = 200,
+        Consumable_Booze,
+        Consumable_ContractNpc,
+        Consumable_Currency,
+        Consumable_Food,
+        Consumable_Generic,
+        Consumable_Halloween,
+        Consumable_Immediate,
+        Consumable_MountRandomUnlock,
+        Consumable_RandomUnlock,
+        Consumable_Transmutation,
+        Consumable_Unlock,
+        Consumable_UpgradeRemoval,
+        Consumable_Utility,
+        Consumable_TeleportToFriend,
+        Container_Default = 300,
+        Container_GiftBox,
+        Container_Immediate,
+        Container_OpenUI,
+        Gathering_Foraging = 400,
+        Gathering_Logging,
+        Gathering_Mining,
+        Gathering_Fishing,
+        Gizmo_Default = 500,
+        Gizmo_ContainerKey,
+        Gizmo_RentableContractNpc,
+        Gizmo_UnlimitedConsumable,
+        Trinket_Accessory = 600,
+        Trinket_Amulet,
+        Trinket_Ring,
+        UpgradeComponent_Default = 700,
+        UpgradeComponent_Gem,
+        UpgradeComponent_Rune,
+        UpgradeComponent_Sigil,
+        Weapon_Axe = 800,
+        Weapon_Dagger,
+        Weapon_Mace,
+        Weapon_Pistol,
+        Weapon_Scepter,
+        Weapon_Sword,
+        Weapon_Focus,
+        Weapon_Shield,
+        Weapon_Torch,
+        Weapon_Warhorn,
+        Weapon_Greatsword,
+        Weapon_Hammer,
+        Weapon_LongBow,
+        Weapon_Rifle,
+        Weapon_ShortBow,
+        Weapon_Staff,
+        Weapon_Harpoon,
+        Weapon_Speargun,
+        Weapon_Trident,
+        Weapon_LargeBundle,
+        Weapon_SmallBundle,
+        Weapon_Toy,
+        Weapon_ToyTwoHanded,
     }
 
     internal class FetchApiData
@@ -262,13 +232,30 @@ namespace IndexBuilder
                 {
                     return (T)(object)ItemType.JadeBotChip;
                 }
-                else if (str == "Foo" && value is GatheringType)
-                {
-                    return (T)(object)ItemType.Fishing;
-                }
                 throw new Exception("Unhandled type");
             }
             return value;
+        }
+
+        public ItemSubType GetItemSubType(ItemType type, string subTypeStr)
+        {
+            string typeStr = type.ToString();
+            string fullSubTypeStr = $"{typeStr}_{subTypeStr}";
+
+            if (!Enum.TryParse(fullSubTypeStr, out ItemSubType subType))
+            {
+                if (type == ItemType.Gathering && subTypeStr == "Foo")
+                {
+                    subType = ItemSubType.Gathering_Fishing;
+                }
+                else
+                {
+                    throw new Exception("Unhandled type");
+                    subType = ItemSubType.Unknown;
+                }
+            }
+
+            return subType;
         }
 
         public async Task Condense(string condensedJsonPath)
@@ -289,49 +276,49 @@ namespace IndexBuilder
                     case ItemType.Armor:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<ArmorJson>(rawItem.details);
-                            condensedItem.ArmorType = TypeStringToType<ArmorType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Consumable:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<ConsumableJson>(rawItem.details);
-                            condensedItem.ConsumableType = TypeStringToType<ConsumableType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Container:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<ContainerJson>(rawItem.details);
-                            condensedItem.ContainerType = TypeStringToType<ContainerType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Gathering:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<GatheringJson>(rawItem.details);
-                            condensedItem.GatheringType = TypeStringToType<GatheringType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Gizmo:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<GizmoJson>(rawItem.details);
-                            condensedItem.GizmoType = TypeStringToType<GizmoType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Trinket:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<TrinketJson>(rawItem.details);
-                            condensedItem.TrinketType = TypeStringToType<TrinketType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.UpgradeComponent:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<UpgradeJson>(rawItem.details);
-                            condensedItem.UpgradeType = TypeStringToType<UpgradeType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                     case ItemType.Weapon:
                         {
                             var rawSubItem = JsonSerializer.Deserialize<WeaponJson>(rawItem.details);
-                            condensedItem.WeaponType = TypeStringToType<WeaponType>(rawSubItem.type);
+                            condensedItem.SubType = GetItemSubType(condensedItem.Type, rawSubItem.type);
                         }
                         break;
                 }
