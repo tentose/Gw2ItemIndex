@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace IndexBuilder
 {
+
+
     public class Item
     {
         public int Id { get; set; }
@@ -109,7 +111,7 @@ namespace IndexBuilder
         public string[] flags { get; set; }
         public string[] infusion_upgrade_flags { get; set; }
         public string suffix { get; set; }
-        public string bonuses { get; set; }
+        public string[]? bonuses { get; set; }
     }
 
     public class WeaponJson

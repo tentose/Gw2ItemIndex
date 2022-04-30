@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace IndexBuilder
@@ -13,6 +14,25 @@ namespace IndexBuilder
         public string Name { get; set; }
         public string IconUrl { get; set; }
         public Rarity Rarity { get; set; }
+        public ItemType Type { get; set; }
+
+        // Optional Fields
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public ArmorType ArmorType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public ConsumableType ConsumableType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public ContainerType ContainerType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public GatheringType GatheringType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public GizmoType GizmoType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public TrinketType TrinketType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public UpgradeType UpgradeType { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public WeaponType WeaponType { get; set; }
     }
 
     public enum Rarity
@@ -27,6 +47,115 @@ namespace IndexBuilder
         Ascended,
         Legendary,
     };
+
+    public enum ItemType
+    {
+        Unknown,
+        Armor,
+        Back,
+        Bag,
+        Consumable,
+        Container,
+        CraftingMaterial,
+        Gathering,
+        Gizmo,
+        Key,
+        MiniPet,
+        Tool,
+        Trait,
+        Trinket,
+        Trophy,
+        UpgradeComponent,
+        Weapon,
+        JadeBotCore,
+        JadeBotChip,
+        Fishing,
+    }
+
+    public enum ArmorType
+    {
+        Unknown,
+        Boots,
+        Coat,
+        Gloves,
+        Helm,
+        HelmAquatic,
+        Leggings,
+        Shoulders,
+    }
+
+    public enum ConsumableType
+    {
+        Unknown,
+        AppearanceChange,
+        Booze,
+        ContractNpc,
+        Currency,
+        Food,
+        Generic,
+        Halloween,
+        Immediate,
+        MountRandomUnlock,
+        RandomUnlock,
+        Transmutation,
+        Unlock,
+        UpgradeRemoval,
+        Utility,
+        TeleportToFriend,
+    }
+
+    public enum ContainerType
+    {
+        Unknown,
+        Default,
+        GiftBox,
+        Immediate,
+        OpenUI,
+    }
+
+    public enum GatheringType
+    {
+        Unknown,
+        Foraging,
+        Logging,
+        Mining,
+    }
+
+    public enum GizmoType
+    {
+        Unknown,
+        Default,
+        ContainerKey,
+        RentableContractNpc,
+        UnlimitedConsumable,
+    }
+
+    public enum TrinketType
+    {
+        Unknown,
+        Accessory,
+        Amulet,
+        Ring,
+    }
+
+    public enum UpgradeType
+    {
+        Unknown,
+        Default,
+        Gem,
+        Rune,
+        Sigil,
+    }
+
+    public enum WeaponType
+    {
+        Unknown,
+        Axe, Dagger, Mace, Pistol, Scepter, Sword,
+        Focus, Shield, Torch, Warhorn,
+        Greatsword, Hammer, LongBow, Rifle, ShortBow, Staff,
+        Harpoon, Speargun, Trident,
+        LargeBundle, SmallBundle, Toy, ToyTwoHanded
+    }
 
     internal class FetchApiData
     {
@@ -120,6 +249,28 @@ namespace IndexBuilder
             }
         }
 
+        public T TypeStringToType<T>(string str) where T : struct,Enum
+        {
+            if (!Enum.TryParse<T>(str, out var value))
+            {
+                // Exceptions
+                if (str == "Qux" && value is ItemType)
+                {
+                    return (T)(object)ItemType.JadeBotCore;
+                }
+                else if (str == "Quux" && value is ItemType)
+                {
+                    return (T)(object)ItemType.JadeBotChip;
+                }
+                else if (str == "Foo" && value is GatheringType)
+                {
+                    return (T)(object)ItemType.Fishing;
+                }
+                throw new Exception("Unhandled type");
+            }
+            return value;
+        }
+
         public async Task Condense(string condensedJsonPath)
         {
             Dictionary<int, CondensedItem> condensedJson = new Dictionary<int, CondensedItem>();
@@ -131,6 +282,60 @@ namespace IndexBuilder
                 condensedItem.Name = rawItem.name;
                 condensedItem.IconUrl = rawItem.icon;
                 condensedItem.Rarity = RarityStringToRarity(rawItem.rarity);
+                condensedItem.Type = TypeStringToType<ItemType>(rawItem.type);
+
+                switch (condensedItem.Type)
+                {
+                    case ItemType.Armor:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<ArmorJson>(rawItem.details);
+                            condensedItem.ArmorType = TypeStringToType<ArmorType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Consumable:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<ConsumableJson>(rawItem.details);
+                            condensedItem.ConsumableType = TypeStringToType<ConsumableType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Container:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<ContainerJson>(rawItem.details);
+                            condensedItem.ContainerType = TypeStringToType<ContainerType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Gathering:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<GatheringJson>(rawItem.details);
+                            condensedItem.GatheringType = TypeStringToType<GatheringType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Gizmo:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<GizmoJson>(rawItem.details);
+                            condensedItem.GizmoType = TypeStringToType<GizmoType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Trinket:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<TrinketJson>(rawItem.details);
+                            condensedItem.TrinketType = TypeStringToType<TrinketType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.UpgradeComponent:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<UpgradeJson>(rawItem.details);
+                            condensedItem.UpgradeType = TypeStringToType<UpgradeType>(rawSubItem.type);
+                        }
+                        break;
+                    case ItemType.Weapon:
+                        {
+                            var rawSubItem = JsonSerializer.Deserialize<WeaponJson>(rawItem.details);
+                            condensedItem.WeaponType = TypeStringToType<WeaponType>(rawSubItem.type);
+                        }
+                        break;
+                }
+
                 condensedJson.Add(kv.Key, condensedItem);
             }
 

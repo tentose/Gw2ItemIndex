@@ -329,8 +329,8 @@ namespace IndexBuilder
                 var langAllItemsPath = langPath + allItemsPath;
                 var langCondensedItemsPath = langPath + condensedItemsPath;
 
-                //BuildIndex(lang, langAllItemsPath, langCondensedItemsPath);
-                TestIndex(langAllItemsPath, langCondensedItemsPath);
+                BuildIndex(lang, langAllItemsPath, langCondensedItemsPath);
+                //TestIndex(langAllItemsPath, langCondensedItemsPath);
             }
 
             Console.ReadLine();
