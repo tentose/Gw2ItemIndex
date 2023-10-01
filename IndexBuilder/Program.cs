@@ -295,11 +295,12 @@ namespace IndexBuilder
             return allPlayerItems;
         }
 
-        public static void BuildIndex(string lang, string allItemsPath, string condensedItemsPath)
+        public static void BuildIndex(string lang, string allItemsPath, string condensedItemsPath, string quickItemsPath)
         {
             FetchApiData fetch = new FetchApiData(allItemsPath);
             fetch.FetchAll(lang).Wait();
             fetch.Condense(condensedItemsPath).Wait();
+            fetch.CondenseForQuickItems(quickItemsPath).Wait();
         }
 
         public static void TestIndex(string allItemsPath, string condensedItemsPath)
@@ -312,6 +313,7 @@ namespace IndexBuilder
         {
             const string allItemsPath = @"all_itemsjson.json";
             const string condensedItemsPath = @"all_items.json";
+            const string quickItemsPath = @"all_qitems.json";
 
             string[] languages = new string[]
             {
@@ -328,8 +330,9 @@ namespace IndexBuilder
                 Directory.CreateDirectory(langPath);
                 var langAllItemsPath = langPath + allItemsPath;
                 var langCondensedItemsPath = langPath + condensedItemsPath;
+                var langQuickItemsPath = langPath + quickItemsPath;
 
-                BuildIndex(lang, langAllItemsPath, langCondensedItemsPath);
+                BuildIndex(lang, langAllItemsPath, langCondensedItemsPath, langQuickItemsPath);
                 //TestIndex(langAllItemsPath, langCondensedItemsPath);
             }
 

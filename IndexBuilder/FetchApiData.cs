@@ -329,6 +329,32 @@ namespace IndexBuilder
             Console.WriteLine($"Wrote {condensedJson.Count} items to {condensedJsonPath}");
         }
 
+        public class QuickItem
+        {
+            public string Name { get; set; }
+            public string IconUrl { get; set; }
+        }
+
+        public async Task CondenseForQuickItems(string condensedJsonPath)
+        {
+            var condensedJson = new Dictionary<int, QuickItem>();
+
+            foreach (var kv in AllItemsJson)
+            {
+                var rawItem = JsonSerializer.Deserialize<ItemJson>(kv.Value);
+                var condensedItem = new QuickItem();
+                condensedItem.Name = rawItem.name;
+                condensedItem.IconUrl = rawItem.icon;
+
+                condensedJson.Add(kv.Key, condensedItem);
+            }
+
+            string json = JsonSerializer.Serialize(condensedJson);
+            File.WriteAllText(condensedJsonPath, json);
+
+            Console.WriteLine($"Wrote {condensedJson.Count} items to {condensedJsonPath}");
+        }
+
         private async Task<bool> ProcessIds(HttpClient client, string lang, List<int> ids)
         {
             string url = $"https://api.guildwars2.com/v2/items?lang={lang}&ids=" + string.Join(',', ids);
