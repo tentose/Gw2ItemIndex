@@ -13,6 +13,7 @@ namespace IndexBuilder
     {
         public string Name { get; set; }
         public string IconUrl { get; set; }
+        public string ChatCode { get; set; }
         public Rarity Rarity { get; set; }
         public ItemType Type { get; set; }
 
@@ -53,8 +54,9 @@ namespace IndexBuilder
         Trophy,
         UpgradeComponent,
         Weapon,
-        JadeBotCore,
-        JadeBotChip,
+        PowerCore,
+        JadeTechModule,
+        Relic,
     }
 
     public enum ItemSubType
@@ -91,6 +93,8 @@ namespace IndexBuilder
         Gathering_Logging,
         Gathering_Mining,
         Gathering_Fishing,
+        Gathering_Bait,
+        Gathering_Lure,
         Gizmo_Default = 500,
         Gizmo_ContainerKey,
         Gizmo_RentableContractNpc,
@@ -224,14 +228,6 @@ namespace IndexBuilder
             if (!Enum.TryParse<T>(str, out var value))
             {
                 // Exceptions
-                if (str == "Qux" && value is ItemType)
-                {
-                    return (T)(object)ItemType.JadeBotCore;
-                }
-                else if (str == "Quux" && value is ItemType)
-                {
-                    return (T)(object)ItemType.JadeBotChip;
-                }
                 throw new Exception("Unhandled type");
             }
             return value;
@@ -268,6 +264,7 @@ namespace IndexBuilder
                 var condensedItem = new CondensedItem();
                 condensedItem.Name = rawItem.name;
                 condensedItem.IconUrl = rawItem.icon;
+                condensedItem.ChatCode = rawItem.chat_link;
                 condensedItem.Rarity = RarityStringToRarity(rawItem.rarity);
                 condensedItem.Type = TypeStringToType<ItemType>(rawItem.type);
 
